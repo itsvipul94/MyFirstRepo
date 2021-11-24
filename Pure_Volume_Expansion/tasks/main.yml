@@ -1,0 +1,35 @@
+---
+# tasks file for Pure_Volume_Expansion
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: check if volume exists
+    shell: sshpass -p "pureuser" ssh -o StrictHostKeyChecking=no pureuser@flasharray1 "purevol list {{ Volume_Name }}"
+    register: op
+    ignore_errors: true
+  - debug:
+     var: op
+  - set_fact:
+      status_code: 2
+      response_message: "{{ op.stderr }}"
+    when: op is failed and op.stderr!=""
+
+  - name: Perform expansion of volume size to {{ Size }}
+    shell: sshpass -p "pureuser" ssh -o StrictHostKeyChecking=no pureuser@flasharray1 "purevol setattr --size {{ Size }} {{ Volume_Name }}"
+    register: ops
+    ignore_errors: true
+  - debug:
+     var: ops
+  - set_fact:
+      status_code: 2
+      response_message: "{{ ops.stderr }}"
+    when: ops is failed and ops.stderr!=""
+  - set_fact:
+      response_message: "The size of the volume-{{ Volume_Name }} has been updated to {{ Size }} successfully!"
+    when: ops is success
+
+  - debug:
+      var: response_message
+  - debug:
+      var: status_code
+    when: status_code is defined
