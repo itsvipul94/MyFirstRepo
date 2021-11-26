@@ -1,0 +1,20 @@
+---
+# tasks file for Pure_Create_Host_Group
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Gather capacity report
+    shell: sshpass -p "pureuser" ssh -o StrictHostKeyChecking=no pureuser@flasharray1 "purehgroup create --hostlist {{ Host_List }} {{ HostGroup_Name }} "
+    register: op
+    ignore_errors: true
+    #with_items: "{{ Host_List.split(',') }}"
+  - debug:
+      var: op
+  - set_fact:
+      status_code: 2
+      response_message: "{{ op.stderr }}"
+    when: op is failed
+  - set_fact:
+      response_message: "{{ op.stdout }}"
+    when: op is success
+
