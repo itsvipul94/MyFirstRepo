@@ -1,0 +1,19 @@
+---
+# tasks file for Pure_Remote_Assist_Status
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Gather capacity report
+    shell: sshpass -p "pureuser" ssh -o StrictHostKeyChecking=no pureuser@flasharray1 "purearray remoteassist --status"
+    register: op
+    ignore_errors: true
+  - debug:
+      var: op
+  - set_fact:
+      status_code: 2
+      response_message: "{{ op.stderr }}"
+    when: op is failed
+  - set_fact:
+      response_message: "Below is pure remote assist status{{ op.stdout }}"
+    when: op is success
+
