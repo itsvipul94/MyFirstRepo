@@ -1,0 +1,32 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - set_fact:
+    Clone_Name: "{{ Source_Pod_Name }}Clone{{ snow_incident_id }}"
+  - name: Create the full copy by cloining from source pod named- {{ Source_Pod_Name }}
+  shell: sshpass -p "pureuser" ssh -o StrictHostKeyChecking=no pureuser@flasharray1 "purepod clone {{ Source_Pod_Name }} {{ Clone_Name }};purepod list;"
+  register: op
+  ignore_errors: true
+- debug:
+    var: op
+- set_fact:
+    status_code: 2
+    response_message: "{{ op.stderr }}"
+  when: op is failed
+- set_fact:
+    status_code: 2
+    response_message: "The pod-{{ Source_Pod_Name }} could not be cloned.\n{{ op.stderr }}\n {{ op.stdout }}"
+  when:
+  - op is success
+  - "not '{{ Clone_Name }}' in op.stdout"
+
+
+
+- set_fact:
+    response_message: "Successfully cloned the pure pod named- {{ Source_Pod_Name }} .Below is the list of existing pods\n{{ op.stdout }}"
+  when: 
+  - status_code is not defined
+  - op is success
+  - "'{{ Clone_Name }}' in op.stdout"
+  - debug:
+  var: status_code
