@@ -1,0 +1,22 @@
+---
+# tasks file for Pure_SAN_Local_Replication
+- name: Perform Local replication for management server- {{ Management_Server }}
+  expect: 
+    command: sshpass -p {{ pureuser }} ssh -o StrictHostKeyChecking=no {{ pureuser }}@{{ pure_host }} "purearray connect --management-address {{ Management_Server }} --type sync-replication --connection-key"
+    responses:
+      'Enter the connection key of the target array:': 556d3180-9719-404c-78b0-b72f4d739ed5
+  ignore_errors: true
+  register: op
+- debug:
+    var: op
+- set_fact:
+    status_code: 2 
+    response_message: "{{ op.stderr }}"
+
+  when: op is failed
+
+- set_fact:
+
+    response_message: "{{ op.stdout }}"
+
+  when: op is success
