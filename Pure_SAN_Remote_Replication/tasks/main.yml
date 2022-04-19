@@ -1,0 +1,23 @@
+---
+# tasks file for Pure_SAN_Remote_Replication
+- name: Perform Remote replication for management server- {{ Management_Server }}
+  expect:
+    command: sshpass -p {{ pureuser }} ssh -o StrictHostKeyChecking=no {{ pureuser }}@{{ pure_host }} "purearray connect --management-address {{ Management_Server }} --type async-replication --connection-key"
+    responses:
+      'Enter the connection key of the target array:': a0e73c66-c851-2ab3-70d7-b1136616edcd
+  ignore_errors: true
+  register: op
+- debug:
+    var: op
+- set_fact:
+    status_code: 2
+    response_message: "{{ op.stderr }}"
+
+  when: op is failed
+
+- set_fact:
+
+    response_message: "{{ op.stdout }}"
+
+  when: op is success
+
